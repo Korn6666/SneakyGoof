@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 public class MovementController : MonoBehaviour
 {
@@ -9,10 +10,13 @@ public class MovementController : MonoBehaviour
     private Vector3 RightLegIKTargetOriginePos;
     private float bodyYTarget = 0;
     [SerializeField] private AnimationCurve heightFootCurve;
+    [SerializeField] private AnimationCurve speedStepCurve;
     // Distance in meters
     [SerializeField] private float maxStepLength = 1;
     [SerializeField] private float maxStepHeight = 0.3f;
-    [SerializeField] private float stepSpeed = 1;
+    [SerializeField] private float maxStepSpeed = 1;
+    [SerializeField] private float minStepSpeed = 0.1f;
+    private float stepSpeed = 1;
     [SerializeField] private float rotationSpeed = 180f; // deg/s, configuré dans l'inspector
     private RaycastHit hit;
 
@@ -46,8 +50,20 @@ public class MovementController : MonoBehaviour
     private bool rightRotationInput = false;
     private bool leftRotationInput = false;
 
+    [Header("Speed 20m Measurement")]
+    [SerializeField] private float measurementDistance = 20f;
+    [SerializeField] private bool debugSpeedMeasurement = true;
+    private Vector3 lastPosForMeasurement;
+    private float accumulatedDistanceForMeasurement = 0f;
+    private float measurementStartTime = 0f;
+    private Vector3 leftDesiredWorldPos;
+    private Vector3 rightDesiredWorldPos;
+
     void Awake()
     {
+        var keys = speedStepCurve.keys;
+        keys[speedStepCurve.keys.Length - 1].value = minStepSpeed / maxStepSpeed; // ensure min speed is respected
+        speedStepCurve.keys = keys;
         currentMaxLeftStepLength = maxStepLength;
         currentMaxRightStepLength = maxStepLength;
         input = new PlayerInputActions();
@@ -61,8 +77,17 @@ public class MovementController : MonoBehaviour
             RightLegIKTarget.transform.position = hit.point + Vector3.up * 0.1f;
             RightLegIKTargetOriginePos =  RightLegIKTarget.transform.position;
         }
-    }
 
+        // initialiser les desired world positions à l'état actuel
+        leftDesiredWorldPos = LeftLegIKTarget.position;
+        rightDesiredWorldPos = RightLegIKTarget.position;
+
+        // Init measurement for 20m speed
+        lastPosForMeasurement = transform.position;
+        accumulatedDistanceForMeasurement = 0f;
+        measurementStartTime = Time.time;
+    }
+    
     void OnEnable()
     {
         input.Player.Enable();
@@ -145,8 +170,8 @@ public class MovementController : MonoBehaviour
                 LeftLegIKTarget.position = LeftLegIKTargetOriginePos;
                 leftLegMovingToOriginalPos = false;
                 leftOnGround = true;
-                currentMaxLeftStepLength = maxStepLength;
-                currentMaxRightStepLength = maxStepLength;
+                // currentMaxLeftStepLength = maxStepLength;
+                // currentMaxRightStepLength = maxStepLength;
             }
             else
             {
@@ -159,8 +184,8 @@ public class MovementController : MonoBehaviour
                 RightLegIKTarget.position = RightLegIKTargetOriginePos;
                 rightLegMovingToOriginalPos = false;
                 rightOnGround = true;
-                currentMaxLeftStepLength = maxStepLength;
-                currentMaxRightStepLength = maxStepLength;
+                // currentMaxLeftStepLength = maxStepLength;
+                // currentMaxRightStepLength = maxStepLength;
             }
             else
             {
@@ -181,19 +206,27 @@ public class MovementController : MonoBehaviour
             }
             else
             {
-                currentMaxLeftStepLength += RightLegIKTarget.localPosition.z - LeftLegIKTarget.localPosition.z;
+                currentMaxLeftStepLength =  maxStepLength + RightLegIKTarget.localPosition.z - LeftLegIKTarget.localPosition.z;
                 LeftLegIKTargetOriginePos = LeftLegIKTarget.position;
+                if (currentMaxLeftStepLength < 0.1f)
+                {
+                    leftPressed = false;
+                }
             }
         }
         else if (leftPressed)
         {
+            leftOnGround = false;
+            stepSpeed = speedStepCurve.Evaluate(currentLeftStepLength) * maxStepSpeed;
             currentLeftStepLength += Time.deltaTime * stepSpeed / currentMaxLeftStepLength;
+            currentLeftStepHeight = Mathf.Clamp01(currentLeftStepHeight);
             currentLeftStepHeight = heightFootCurve.Evaluate(currentLeftStepLength);
 
             if (rightON || leftLegMovingToOriginalPos || currentLeftStepLength >= 1)
             {
                 leftLegMovingToOriginalPos = true;
                 leftPressed = false;
+                return;
             }
             bodyYTarget = currentLeftStepHeight * maxStepHeight * YBodyMoveFactor; // Ajuste la hauteur du corps en fonction du pied gauche;
             LeftLegIKTarget.transform.position = LeftLegIKTargetOriginePos + currentLeftStepLength * currentMaxLeftStepLength * transform.forward + currentLeftStepHeight * maxStepHeight * transform.up;
@@ -201,7 +234,7 @@ public class MovementController : MonoBehaviour
         else if (leftJustReleased)
         {
             currentLeftStepLength = 0;
-            currentMaxLeftStepLength = maxStepLength;
+            // currentMaxLeftStepLength = maxStepLength;
        
             leftLegMovingToOriginalPos = true;
             if (Physics.Raycast(LeftLegIKTarget.transform.position, Vector3.down, out hit, 10f))
@@ -235,19 +268,27 @@ public class MovementController : MonoBehaviour
             }
             else
             {
-                currentMaxRightStepLength += LeftLegIKTarget.localPosition.z - RightLegIKTarget.localPosition.z;
+                currentMaxRightStepLength = maxStepLength +  LeftLegIKTarget.localPosition.z - RightLegIKTarget.localPosition.z;
                 RightLegIKTargetOriginePos = RightLegIKTarget.position;
+                if (currentMaxRightStepLength < 0.1f)
+                {
+                    rightPressed = false;
+                }
             }
         }
         else if (rightPressed)
         {
+            rightOnGround = false;
+            stepSpeed = speedStepCurve.Evaluate(currentRightStepLength) * maxStepSpeed;
             currentRightStepLength += Time.deltaTime * stepSpeed / currentMaxRightStepLength;
+            currentRightStepLength = Mathf.Clamp01(currentRightStepLength);
             currentRightStepHeight = heightFootCurve.Evaluate(currentRightStepLength);
 
             if (leftON || rightLegMovingToOriginalPos || currentRightStepLength >= 1)
             {
                 rightLegMovingToOriginalPos = true;
                 rightPressed = false;
+                return;
             }
             bodyYTarget = currentRightStepHeight * maxStepHeight * YBodyMoveFactor; // Ajuste la hauteur du corps en fonction du pied droit;
             RightLegIKTarget.transform.position = RightLegIKTargetOriginePos + currentMaxRightStepLength * currentRightStepLength * transform.forward + currentRightStepHeight * maxStepHeight * transform.up ;
@@ -255,7 +296,7 @@ public class MovementController : MonoBehaviour
         else if (rightJustReleased)
         {
             currentRightStepLength = 0;
-            currentMaxRightStepLength = maxStepLength;
+            // currentMaxRightStepLength = maxStepLength;
 
             rightLegMovingToOriginalPos = true;
             if (Physics.Raycast(RightLegIKTarget.transform.position, Vector3.down, out hit, 10f))
@@ -280,6 +321,9 @@ public class MovementController : MonoBehaviour
         
         //Main Body
         MainBodyPositionUpdate();
+
+        // Mesure la vitesse moyenne sur `measurementDistance` mètres et debug quand atteint.
+        Update20mSpeedMeasurement();
 
         BoolAssignation();
     }
@@ -325,6 +369,7 @@ public class MovementController : MonoBehaviour
 
         if (leftPressed)
         {
+            if (rightON) leftPressed = false; // empêcher le maintien si l'autre pied est appuyé
         }
 
         if (leftJustReleased)
@@ -346,6 +391,28 @@ public class MovementController : MonoBehaviour
         if (rightJustReleased)
         {
             rightJustReleased = false;
+        }
+    }
+
+    // Mesure la vitesse moyenne sur `measurementDistance` mètres et debug quand atteint.
+    private void Update20mSpeedMeasurement()
+    {
+        Vector3 currentPos = transform.position;
+        float step = Vector3.Distance(currentPos, lastPosForMeasurement);
+        accumulatedDistanceForMeasurement += step;
+        lastPosForMeasurement = currentPos;
+
+        if (accumulatedDistanceForMeasurement >= measurementDistance)
+        {
+            float elapsed = Time.time - measurementStartTime;
+            float speed = accumulatedDistanceForMeasurement / Mathf.Max(0.0001f, elapsed); // m/s
+            if (debugSpeedMeasurement)
+            {
+                Debug.Log($"[MovementController] Avg speed over {accumulatedDistanceForMeasurement:F2} m = {speed:F2} m/s (time {elapsed:F2}s).");
+            }
+            // reset pour la prochaine mesure
+            measurementStartTime = Time.time;
+            accumulatedDistanceForMeasurement = 0f;
         }
     }
 }
