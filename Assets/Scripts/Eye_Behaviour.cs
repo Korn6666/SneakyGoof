@@ -1,5 +1,7 @@
 using System;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Eye_Behaviour : MonoBehaviour
 {
@@ -33,36 +35,63 @@ public class Eye_Behaviour : MonoBehaviour
     private bool firstStage = true;
     private bool secondStage = false;
     private bool thirdStage = false;
-
+    [Header("Noise Bar UI")]
+    [SerializeField] private Slider noiseBarSlider;
+    [SerializeField] private Image FillArea;
+    [SerializeField] private Color firstStageColor;
+    [SerializeField] private Color secondStageColor;
+    [SerializeField] private Color thirdStageColor;
     void OnNoiseHeard(Vector3 sourcePosition, float intensity)
     {
         current_noiseLevel += intensity;
-        if (current_noiseLevel >= noiseFirstThereshold)
+        if (current_noiseLevel < noiseFirstThereshold)
+        {
+        }
+        else if (current_noiseLevel < noiseSecondThereshold)
         {
             firstStage = false;
-            secondStage = true; 
-            Debug.Log("Eye heard noise at position: " + sourcePosition + " with intensity: " + intensity);
+            secondStage = true;
+            // Debug.Log("Eye heard noise at position: " + sourcePosition + " with intensity: " + intensity);
             lastKnownPlayerPosition = sourcePosition;
             timerEyePosition = -1; // Interrupt wait time to react immediately
-        }else if (current_noiseLevel >= noiseSecondThereshold && secondStage)
+        }
+        else if (secondStage) // Frame when crossing the second threshold
         {
             secondStage = false;
             thirdStage = true;
             OpenTheEye();
-            Debug.Log("Eye heard loud noise at position: " + sourcePosition + " with intensity: " + intensity);
-            // Implement behavior when loud noise is heard
-        }else if (current_noiseLevel > noiseSecondThereshold && thirdStage)
+        }
+        else // Above second threshold
         {
-            // Further behavior for very loud noises can be implemented here
-            Debug.Log("Lose");
+            // Debug.Log("Lose");
+        }
+        noiseBarSlider.value = current_noiseLevel;
+    }
+
+    private void NoiseColorBarUpdate()
+    {
+        if (current_noiseLevel < noiseFirstThereshold)
+        {
+            FillArea.color = firstStageColor;
+        }else if (current_noiseLevel < noiseSecondThereshold)
+        {
+            FillArea.color = secondStageColor;
+        }
+        else
+        {
+            FillArea.color = thirdStageColor;
         }
     }
 
     void Update()
     {
         EyeCloseAndOpenBehaviour();
-        current_noiseLevel -= noiseSpeedDecrease * Time.deltaTime;
-        current_noiseLevel = Mathf.Max(0, current_noiseLevel); // Ensure noise level doesn't go below 0
+        if (current_noiseLevel > 0)
+        {
+            current_noiseLevel -= noiseSpeedDecrease * Time.deltaTime;
+            noiseBarSlider.value = current_noiseLevel;
+        }
+        NoiseColorBarUpdate();
 
         if (secondStage || (firstStage && eyeOpened))
         {
