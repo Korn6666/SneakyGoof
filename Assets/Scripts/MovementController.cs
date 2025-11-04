@@ -28,6 +28,7 @@ public class MovementController : MonoBehaviour
     private PlayerInputActions input;
     [SerializeField] private float YBodyMoveFactor = 1;
     [SerializeField] private float bodyLerpBtwLegs = 0.3f;
+    private float initialYBodyPos;
 
 
     // Pied Gauche
@@ -71,6 +72,7 @@ public class MovementController : MonoBehaviour
 
     void Awake()
     {
+        initialYBodyPos = transform.position.y;
         var keys = speedStepCurve.keys;
         keys[speedStepCurve.keys.Length - 1].value = minStepSpeed / maxStepSpeed; // ensure min speed is respected
         speedStepCurve.keys = keys;
@@ -347,7 +349,6 @@ public class MovementController : MonoBehaviour
                     rightDesiredWorldPos = Vector3.Lerp(RightLegIKTarget.position, RightLegIKTargetOriginePos, Time.deltaTime * speedFootToGround);
                 }
             }
-            
             MainBodyPositionUpdate();
             return;
         }
@@ -371,7 +372,7 @@ public class MovementController : MonoBehaviour
             feetAverage = (RightLegIKTargetOriginePos + LeftLegIKTargetOriginePos) * 0.5f;
             bodyLerpSpeed = 5;
         }
-        Vector3 targetPos = new Vector3(feetAverage.x, bodyYTarget + bodyYOffset, feetAverage.z);
+        Vector3 targetPos = new Vector3(feetAverage.x, initialYBodyPos + bodyYTarget + bodyYOffset, feetAverage.z);
         // Lissage — ajuste le facteur si besoin
         transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * bodyLerpSpeed);
     }
