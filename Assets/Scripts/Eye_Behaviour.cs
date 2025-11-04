@@ -64,33 +64,14 @@ public class Eye_Behaviour : MonoBehaviour
         }
         else // Above second threshold
         {
-            // Debug.Log("Lose");
+            PlayerLose();
         }
         noiseBarSlider.value = current_noiseLevel;
     }
 
-    private void NoiseColorBarUpdate()
+    void Start()
     {
-        if (current_noiseLevel < noiseFirstThereshold)
-        {
-            firstStage = true;
-            secondStage = false;
-            thirdStage = false;
-            FillArea.color = firstStageColor;
-        }else if (current_noiseLevel < noiseSecondThereshold)
-        {
-            firstStage = false;
-            secondStage = true;
-            thirdStage = false;
-            FillArea.color = secondStageColor;
-        }
-        else
-        {
-            firstStage = false;
-            secondStage = false;
-            thirdStage = true;
-            FillArea.color = thirdStageColor;
-        }
+        noiseBarSlider.maxValue = maxNoiseOnBar;
     }
 
     void Update()
@@ -122,9 +103,10 @@ public class Eye_Behaviour : MonoBehaviour
             if (Physics.Raycast(transform.position + directionToPlayer, directionToPlayer, out RaycastHit hit)) // Raycast to check for line of sight
             {
                 Debug.DrawRay(transform.position + directionToPlayer, directionToPlayer * hit.distance, Color.blue);
+                Debug.Log(hit.transform.name);
                 if (hit.transform.CompareTag("Player")) // If the raycast hits the player
                 {
-                    // Implement behavior when player is detected
+                    PlayerLose();
                 }
             }
         }
@@ -206,11 +188,41 @@ public class Eye_Behaviour : MonoBehaviour
         timerEyeOpened = UnityEngine.Random.Range(eyeOpenDurationRange.x, eyeOpenDurationRange.y);
         eyeOpenVisual.SetActive(true);
     }
-    
+
     private void CloseTheEye()
     {
         eyeOpened = false;
         timerEyeClosed = UnityEngine.Random.Range(eyeClosedDurationRange.x, eyeClosedDurationRange.y);
         eyeOpenVisual.SetActive(false);
+    }
+    
+        private void NoiseColorBarUpdate()
+    {
+        if (current_noiseLevel < noiseFirstThereshold)
+        {
+            firstStage = true;
+            secondStage = false;
+            thirdStage = false;
+            FillArea.color = firstStageColor;
+        }
+        else if (current_noiseLevel < noiseSecondThereshold)
+        {
+            firstStage = false;
+            secondStage = true;
+            thirdStage = false;
+            FillArea.color = secondStageColor;
+        }
+        else
+        {
+            firstStage = false;
+            secondStage = false;
+            thirdStage = true;
+            FillArea.color = thirdStageColor;
+        }
+    }
+
+    private void PlayerLose()
+    {
+        GameManager.singleton.OnLose();
     }
 }
