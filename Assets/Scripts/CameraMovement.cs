@@ -10,6 +10,7 @@ public class CameraMovement : MonoBehaviour
     private Quaternion targetRotationY;
     private float distanceBehindPlayer;
     [SerializeField] private float speedLerp = 5f;
+    [SerializeField] private float limitDist = 3;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -21,6 +22,11 @@ public class CameraMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        float distance = Vector3.Distance(eye.position, player.position);
+        if (distance < limitDist)
+        {
+            return;
+        }
         // Direction de l’œil vers le joueur
         Vector3 direction = (eye.position - player.position).normalized;
 
