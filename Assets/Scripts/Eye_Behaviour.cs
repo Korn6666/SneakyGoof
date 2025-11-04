@@ -185,6 +185,10 @@ public class Eye_Behaviour : MonoBehaviour
         eyeOpened = true;
         timerEyeOpened = UnityEngine.Random.Range(eyeOpenDurationRange.x, eyeOpenDurationRange.y);
         eyeOpenVisual.SetActive(true);
+        if (thirdStage)
+        {
+            transform.rotation = Quaternion.LookRotation(-(player.position - transform.position).normalized);
+        }
     }
     
     private void CloseTheEye()

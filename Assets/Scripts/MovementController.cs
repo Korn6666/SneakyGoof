@@ -14,6 +14,8 @@ public class MovementController : MonoBehaviour
     [SerializeField] private float bodyYOffset = 1f;
     [SerializeField] private AnimationCurve heightFootCurve;
     [SerializeField] private AnimationCurve speedStepCurve;
+    [SerializeField] private float toleranceDistanceForStep = 0.1f;
+    [SerializeField] private float speedFootToGround = 20;
     // Distance in meters
     [SerializeField] private float maxStepLength = 1;
     [SerializeField] private float maxStepHeight = 0.3f;
@@ -154,7 +156,8 @@ public class MovementController : MonoBehaviour
         //Left foot
         if (leftJustPressed)
         {
-            if (rightON || !leftOnGround)
+            float distR = Vector3.Distance(RightLegIKTarget.position, RightLegIKTargetOriginePos);
+            if (rightON || !leftOnGround || distR > toleranceDistanceForStep)
             {
                 leftJustPressed = false;
                 leftPressed = false;
@@ -168,7 +171,6 @@ public class MovementController : MonoBehaviour
                 {
                     leftPressed = false;
                 }
-                
             }
         }
         else if (leftPressed)
@@ -191,7 +193,7 @@ public class MovementController : MonoBehaviour
                  leftDesiredWorldPos = LeftLegIKTargetOriginePos + currentLeftStepLength * currentMaxLeftStepLength * transform.forward + currentLeftStepHeight * maxStepHeight * transform.up;
              }
         }
-        else if (leftJustReleased && !rightON)
+        else if (leftJustReleased)
         {
             currentLeftStepLength = 0;
             if (!leftOnGround)
@@ -207,13 +209,14 @@ public class MovementController : MonoBehaviour
         //Right foot
         if (rightJustPressed)
         {
-            if (leftON || !rightOnGround)
+            float distL = Vector3.Distance(LeftLegIKTarget.position, LeftLegIKTargetOriginePos);
+            if (leftON || !rightOnGround || distL > toleranceDistanceForStep)
             {
                 rightJustPressed = false;
                 rightPressed = false;
             }
             else
-            {   
+            {
                 float signedForward = Vector3.Dot(LeftLegIKTarget.position - RightLegIKTarget.position, transform.forward);
                 currentMaxRightStepLength = maxStepLength + signedForward;
                 RightLegIKTargetOriginePos = RightLegIKTarget.position;
@@ -221,7 +224,6 @@ public class MovementController : MonoBehaviour
                 {
                     rightPressed = false;
                 }
-                
             }
         }
         else if (rightPressed)
@@ -244,7 +246,7 @@ public class MovementController : MonoBehaviour
                 rightDesiredWorldPos = RightLegIKTargetOriginePos + currentMaxRightStepLength * currentRightStepLength * transform.forward + currentRightStepHeight * maxStepHeight * transform.up;
             }
            }
-        else if (rightJustReleased && !leftON)
+        else if (rightJustReleased)
         {
             currentRightStepLength = 0;
             if (!rightOnGround)
@@ -322,13 +324,14 @@ public class MovementController : MonoBehaviour
                     leftLegMovingToOriginalPos = false;
                     leftOnGround = true;
                     noiseEmitter.MakeNoise(1);
-                    Debug.Log("Left foot back to original pos");
+                    // Debug.Log("Left foot back to original pos");
                 }
                 else
                 {
-                    leftDesiredWorldPos = Vector3.Lerp(LeftLegIKTarget.position, LeftLegIKTargetOriginePos, Time.deltaTime * 10);
+                    leftDesiredWorldPos = Vector3.Lerp(LeftLegIKTarget.position, LeftLegIKTargetOriginePos, Time.deltaTime * speedFootToGround);
                 }
-            }else if (rightLegMovingToOriginalPos)
+            }
+            if(rightLegMovingToOriginalPos)
             {
                 float distR = Vector3.Distance(RightLegIKTarget.position, RightLegIKTargetOriginePos);
                 if (distR <= 0.05f)
@@ -336,12 +339,12 @@ public class MovementController : MonoBehaviour
                     rightDesiredWorldPos = RightLegIKTargetOriginePos;
                     rightLegMovingToOriginalPos = false;
                     rightOnGround = true;
-                    noiseEmitter.MakeNoise(1); 
-                    Debug.Log("Right foot back to original pos");
+                    noiseEmitter.MakeNoise(1);
+                    // Debug.Log("Right foot back to original pos");
                 }
                 else
                 {
-                    rightDesiredWorldPos = Vector3.Lerp(RightLegIKTarget.position, RightLegIKTargetOriginePos, Time.deltaTime * 10);
+                    rightDesiredWorldPos = Vector3.Lerp(RightLegIKTarget.position, RightLegIKTargetOriginePos, Time.deltaTime * speedFootToGround);
                 }
             }
             
@@ -376,9 +379,9 @@ public class MovementController : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.green;
-        Gizmos.DrawSphere(LeftLegIKTargetOriginePos +  currentMaxLeftStepLength * transform.forward, 0.1f);
+        Gizmos.DrawSphere(LeftLegIKTargetOriginePos, 0.1f);
         Gizmos.color = Color.blue;
-        Gizmos.DrawSphere(RightLegIKTargetOriginePos + currentMaxRightStepLength * 1 * transform.forward, 0.1f);
+        Gizmos.DrawSphere(RightLegIKTargetOriginePos, 0.1f);
     }
     private void BoolAssignation()
     {

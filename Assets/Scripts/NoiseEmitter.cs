@@ -9,6 +9,6 @@ public class NoiseEmitter : MonoBehaviour
     {
         float noise = baseNoiseLevel * multiplier;
         Eye_Behaviour.OnNoiseEmitted?.Invoke(transform.position, noise);
-        Debug.Log("Noise emitted at position: " + transform.position + " with intensity: " + noise);
+        // Debug.Log("Noise emitted at position: " + transform.position + " with intensity: " + noise);
     }
 }
