@@ -560,6 +560,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 03b64d556d7e24b41a075eb0ad62ba5e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8735563591824565839}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 03b64d556d7e24b41a075eb0ad62ba5e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7110869988680752236}
   m_SourcePrefab: {fileID: 100100000, guid: 03b64d556d7e24b41a075eb0ad62ba5e, type: 3}
 --- !u!4 &118636106686453647 stripped
 Transform:
@@ -714,6 +717,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  toleranceDistanceForStep: 0.1
+  speedFootToGround: 20
   maxStepLength: 1.5
   maxStepHeight: 0.4
   maxStepSpeed: 4
@@ -723,6 +728,19 @@ MonoBehaviour:
   bodyLerpBtwLegs: 0.3
   measurementDistance: 20
   debugSpeedMeasurement: 1
+--- !u!114 &7110869988680752236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6151703258039324030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 040a1ea45fb35304992172c77c08da44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseNoiseLevel: 2
 --- !u!4 &6779304102565009348 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 03b64d556d7e24b41a075eb0ad62ba5e, type: 3}
