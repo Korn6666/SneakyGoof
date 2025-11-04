@@ -24,10 +24,11 @@ public class Eye_Behaviour : MonoBehaviour
 
     //Noise Behaviour
     [Header("Noise Behaviour")]
-    public float noiseFirstThereshold;
-    [SerializeField] private Vector2 targetRandomRangeAboveFirstThreshold = new Vector2(-90, 90);
-    public float noiseSecondThereshold;
-    public float noiseSpeedDecrease;
+    [SerializeField] private float maxNoiseOnBar;
+    [SerializeField] float noiseFirstThereshold;
+    [SerializeField] float noiseSecondThereshold;
+    [SerializeField] float noiseSpeedDecrease;
+    [SerializeField] private Vector2 targetRandomRangeOnSecondStage = new Vector2(-90, 90);
     private float current_noiseLevel = 0f;
     public static Action<Vector3, float> OnNoiseEmitted; // Vector3: position of the noise, float: intensity of the noises
     void OnEnable() => OnNoiseEmitted += OnNoiseHeard;
@@ -59,7 +60,7 @@ public class Eye_Behaviour : MonoBehaviour
         {
             secondStage = false;
             thirdStage = true;
-            OpenTheEye();
+            EyeOnPlayer();
         }
         else // Above second threshold
         {
@@ -72,13 +73,22 @@ public class Eye_Behaviour : MonoBehaviour
     {
         if (current_noiseLevel < noiseFirstThereshold)
         {
+            firstStage = true;
+            secondStage = false;
+            thirdStage = false;
             FillArea.color = firstStageColor;
         }else if (current_noiseLevel < noiseSecondThereshold)
         {
+            firstStage = false;
+            secondStage = true;
+            thirdStage = false;
             FillArea.color = secondStageColor;
         }
         else
         {
+            firstStage = false;
+            secondStage = false;
+            thirdStage = true;
             FillArea.color = thirdStageColor;
         }
     }
@@ -130,7 +140,7 @@ public class Eye_Behaviour : MonoBehaviour
         else if (!isTargetDefined && timerEyePosition <= 0 && secondStage)
         {
             targetDirection = (lastKnownPlayerPosition - transform.position).normalized;
-            float angleToTarget = UnityEngine.Random.Range(targetRandomRangeAboveFirstThreshold.x, targetRandomRangeAboveFirstThreshold.y);
+            float angleToTarget = UnityEngine.Random.Range(targetRandomRangeOnSecondStage.x, targetRandomRangeOnSecondStage.y);
             targetDirection = Quaternion.Euler(0, angleToTarget, 0) * targetDirection;
             targetRotation = Quaternion.LookRotation(targetDirection);
             isTargetDefined = true;
@@ -152,6 +162,16 @@ public class Eye_Behaviour : MonoBehaviour
         {
             transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
+    }
+
+    private void EyeOnPlayer()
+    {
+        targetDirection = (lastKnownPlayerPosition - transform.position).normalized;
+        targetRotation = Quaternion.LookRotation(targetDirection);
+        transform.rotation = targetRotation;
+        isTargetDefined = true;
+        OpenTheEye();
+        
     }
 
     private void EyeCloseAndOpenBehaviour()
@@ -178,17 +198,13 @@ public class Eye_Behaviour : MonoBehaviour
                 OpenTheEye();
             }
         }
-        
+
     }
     private void OpenTheEye()
     {
         eyeOpened = true;
         timerEyeOpened = UnityEngine.Random.Range(eyeOpenDurationRange.x, eyeOpenDurationRange.y);
         eyeOpenVisual.SetActive(true);
-        if (thirdStage)
-        {
-            transform.rotation = Quaternion.LookRotation(-(player.position - transform.position).normalized);
-        }
     }
     
     private void CloseTheEye()
