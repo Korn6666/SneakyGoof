@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class Eye_Behaviour : MonoBehaviour
 {
+    [SerializeField] private bool debugMode;
     [SerializeField] private Transform player;
     [SerializeField] private Transform pupil;
     [SerializeField] private GameObject eyeOpenVisual;
@@ -76,12 +77,17 @@ public class Eye_Behaviour : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.E) && debugMode)
+        {
+            current_noiseLevel = 0;
+
+        }
         EyeCloseAndOpenBehaviour();
         if (current_noiseLevel > 0)
         {
             current_noiseLevel -= noiseSpeedDecrease * Time.deltaTime;
-            noiseBarSlider.value = current_noiseLevel;
         }
+        noiseBarSlider.value = current_noiseLevel;
         NoiseColorBarUpdate();
 
         if (secondStage || (firstStage && eyeOpened))

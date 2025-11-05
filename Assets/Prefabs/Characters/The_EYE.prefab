@@ -130,7 +130,7 @@ MonoBehaviour:
   timeBetweenDirectionChange: 5
   eyeOpenDurationRange: {x: 8, y: 12}
   eyeClosedDurationRange: {x: 5, y: 10}
-  maxNoiseOnBar: 0
+  maxNoiseOnBar: 100
   noiseFirstThereshold: 30
   noiseSecondThereshold: 60
   noiseSpeedDecrease: 1

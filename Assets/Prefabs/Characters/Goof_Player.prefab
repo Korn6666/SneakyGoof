@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1131904180127144932}
+  - component: {fileID: 7410891223681484800}
+  - component: {fileID: 7297382910452845723}
   m_Layer: 0
   m_Name: LLegIK_target
   m_TagString: Untagged
@@ -31,6 +33,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4434880856033998783}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &7410891223681484800
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71466724235076279}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.9177817, y: 1.3453934, z: 2.145138}
+  m_Center: {x: 0.041107725, y: -5.28, z: 0.23}
+--- !u!114 &7297382910452845723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71466724235076279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: deda9e8d3065e3141b0543decd8f27f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bodyPart: 0
+  movementController: {fileID: 8735563591824565839}
 --- !u!1 &1361942349087212267
 GameObject:
   m_ObjectHideFlags: 0
@@ -40,6 +77,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7636784161550201822}
+  - component: {fileID: 1250536947976969536}
+  - component: {fileID: 5483143452689622993}
   m_Layer: 0
   m_Name: RLegIK_target
   m_TagString: Untagged
@@ -62,6 +101,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7150822417235680555}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1250536947976969536
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1361942349087212267}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.9177817, y: 1.3453934, z: 2.145138}
+  m_Center: {x: 0.041107725, y: 4.8317695, z: -0.14324397}
+--- !u!114 &5483143452689622993
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1361942349087212267}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: deda9e8d3065e3141b0543decd8f27f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bodyPart: 1
+  movementController: {fileID: 8735563591824565839}
 --- !u!1 &2722836882426539964
 GameObject:
   m_ObjectHideFlags: 0
@@ -72,7 +146,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4434880856033998783}
   - component: {fileID: 6024859072811494631}
-  - component: {fileID: 4303864171362850478}
   m_Layer: 0
   m_Name: LLegIK
   m_TagString: Untagged
@@ -121,29 +194,6 @@ MonoBehaviour:
     m_HintWeight: 1
     m_MaintainTargetPositionOffset: 1
     m_MaintainTargetRotationOffset: 1
---- !u!114 &4303864171362850478
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2722836882426539964}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 796b75e345bd64d47a31edd757bd2670, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Weight: 1
-  m_Data:
-    m_Root: {fileID: 0}
-    m_Tip: {fileID: 0}
-    m_Target: {fileID: 0}
-    m_ChainRotationWeight: 1
-    m_TipRotationWeight: 1
-    m_MaxIterations: 15
-    m_Tolerance: 0.0001
-    m_MaintainTargetPositionOffset: 0
-    m_MaintainTargetRotationOffset: 0
 --- !u!1 &4568046715706012744
 GameObject:
   m_ObjectHideFlags: 0
@@ -570,6 +620,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 03b64d556d7e24b41a075eb0ad62ba5e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 179602000745048268}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 03b64d556d7e24b41a075eb0ad62ba5e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1534534073021536222}
   m_SourcePrefab: {fileID: 100100000, guid: 03b64d556d7e24b41a075eb0ad62ba5e, type: 3}
 --- !u!4 &118636106686453647 stripped
 Transform:
@@ -733,6 +786,8 @@ MonoBehaviour:
   rotationSpeed: 180
   YBodyMoveFactor: 0.5
   bodyLerpBtwLegs: 0.3
+  leftFootOnObstacle: 0
+  rightFootOnObstacle: 0
   measurementDistance: 20
   debugSpeedMeasurement: 1
 --- !u!114 &7110869988680752236
@@ -771,6 +826,33 @@ CapsuleCollider:
   m_Height: 1.437374
   m_Direction: 1
   m_Center: {x: 0, y: 0.7174435, z: 0}
+--- !u!54 &1534534073021536222
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6151703258039324030}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!4 &6779304102565009348 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 03b64d556d7e24b41a075eb0ad62ba5e, type: 3}

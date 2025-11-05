@@ -42,6 +42,7 @@ public class MovementController : MonoBehaviour
     private float currentLeftStepLength;
     private float currentMaxLeftStepLength;
     private float currentLeftStepHeight = 0;
+    public bool leftFootOnObstacle;
 
     // Pied Droite
     private bool rightPressed;
@@ -54,6 +55,7 @@ public class MovementController : MonoBehaviour
     private float currentRightStepLength;
     private float currentMaxRightStepLength;
     private float currentRightStepHeight = 0;
+    public bool rightFootOnObstacle;
 
     // Rotation
     private bool rightRotationInput = false;
@@ -182,7 +184,7 @@ public class MovementController : MonoBehaviour
             currentLeftStepHeight = Mathf.Clamp01(currentLeftStepHeight);
             currentLeftStepHeight = heightFootCurve.Evaluate(currentLeftStepLength);
 
-            if (rightON || leftLegMovingToOriginalPos || currentLeftStepLength >= 1)
+            if (rightON || leftLegMovingToOriginalPos || currentLeftStepLength >= 1 || leftFootOnObstacle)
             {
                 currentLeftStepLength = 0;
                 leftLegMovingToOriginalPos = true;
@@ -235,7 +237,7 @@ public class MovementController : MonoBehaviour
             currentRightStepLength = Mathf.Clamp01(currentRightStepLength);
             currentRightStepHeight = heightFootCurve.Evaluate(currentRightStepLength);
 
-            if (leftON || rightLegMovingToOriginalPos || currentRightStepLength >= 1)
+            if (leftON || rightLegMovingToOriginalPos || currentRightStepLength >= 1 || rightFootOnObstacle)
             {
                 currentRightStepLength = 0;
                 rightLegMovingToOriginalPos = true;
