@@ -24,7 +24,7 @@ public class MaterialTransparence : MonoBehaviour
         if (player == null) return;
 
         Vector3 dirToPlayer = player.transform.position - transform.position;
-        RaycastHit[] hits = Physics.RaycastAll(transform.position, dirToPlayer.normalized, dirToPlayer.magnitude);
+        RaycastHit[] hits = Physics.RaycastAll(transform.position, dirToPlayer.normalized, dirToPlayer.magnitude, obstacleLayer);
 
         newObstacles.Clear();
 
@@ -123,24 +123,28 @@ public class MaterialTransparence : MonoBehaviour
         originalMaterials.Remove(rend);
     }
 
-    // Configure un material (Standard shader) pour supporter l'alpha blending
+    // Configure un material (URP shader) pour supporter l'alpha blending
     private void SetupMaterialForTransparency(Material mat)
-    {
+   {
         if (mat == null) return;
 
-        // Si Standard shader, activer la transparence (mode 3 == Transparent pour certains pipelines)
-        // On suit la méthode courante pour changer le blending du Standard shader
-        if (mat.HasProperty("_Mode"))
-        {
-            mat.SetFloat("_Mode", 3); // 3 = Transparent (0=Opaque,1=Cutout,2=Fade,3=Transparent selon versions)
-        }
+        // 0 = Opaque, 1 = Transparent
+        mat.SetFloat("_Surface", 1f);
+        mat.SetOverrideTag("RenderType", "Transparent");
+        mat.SetInt("_ZWrite", 0);
+        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+        // Blending standard
         mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
         mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        mat.SetInt("_ZWrite", 0);
+
+        // Activation des bons mots-clés shader
+        mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        mat.DisableKeyword("_SURFACE_TYPE_OPAQUE");
+        mat.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+
+        // Important : désactive le test alpha si actif
         mat.DisableKeyword("_ALPHATEST_ON");
-        mat.EnableKeyword("_ALPHABLEND_ON");
-        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
     }
 
     private void OnDisable()
