@@ -30,6 +30,8 @@ public class Eye_Behaviour : MonoBehaviour
     [SerializeField] float noiseFirstThereshold;
     [SerializeField] float noiseSecondThereshold;
     [SerializeField] float noiseSpeedDecrease;
+    private float currentNoiseSpeedDecrease;
+    [SerializeField] float noiseSpeedDecreaseAcceleration = 0.1f; 
     [SerializeField] private Vector2 targetRandomRangeOnSecondStage = new Vector2(-90, 90);
     private float current_noiseLevel = 0f;
     public static Action<Vector3, float> OnNoiseEmitted; // Vector3: position of the noise, float: intensity of the noises
@@ -46,6 +48,7 @@ public class Eye_Behaviour : MonoBehaviour
     [SerializeField] private Color thirdStageColor;
     void OnNoiseHeard(Vector3 sourcePosition, float intensity)
     {
+        currentNoiseSpeedDecrease = noiseSpeedDecrease;
         current_noiseLevel += intensity;
         if (current_noiseLevel < noiseFirstThereshold)
         {
@@ -81,13 +84,13 @@ public class Eye_Behaviour : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.E) && debugMode)
         {
             current_noiseLevel = 0;
-
         }
         EyeCloseAndOpenBehaviour();
         if (current_noiseLevel > 0)
         {
-            current_noiseLevel -= noiseSpeedDecrease * Time.deltaTime;
+            current_noiseLevel -= currentNoiseSpeedDecrease * Time.deltaTime;
         }
+        currentNoiseSpeedDecrease += noiseSpeedDecreaseAcceleration * Time.deltaTime;
         noiseBarSlider.value = current_noiseLevel;
         NoiseColorBarUpdate();
 
@@ -123,7 +126,7 @@ public class Eye_Behaviour : MonoBehaviour
         if (!isTargetDefined && timerEyePosition <= 0 && firstStage)
         {
             isTargetDefined = true;
-            targetDirection = Quaternion.Euler(0, UnityEngine.Random.Range(0f, 360f), 0) * Vector3.forward;
+            targetDirection = Quaternion.Euler(0, UnityEngine.Random.Range(-180, 180), 0) * (-transform.forward);
             targetRotation = Quaternion.LookRotation(targetDirection);
         }
         else if (!isTargetDefined && timerEyePosition <= 0 && secondStage)
