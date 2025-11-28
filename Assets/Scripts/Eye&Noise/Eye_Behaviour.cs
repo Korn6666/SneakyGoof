@@ -113,7 +113,6 @@ public class Eye_Behaviour : MonoBehaviour
             if (Physics.Raycast(transform.position + directionToPlayer, directionToPlayer, out RaycastHit hit, Mathf.Infinity, obstacleLayer)) // Raycast to check for line of sight
             {
                 Debug.DrawRay(transform.position + directionToPlayer, directionToPlayer * hit.distance, Color.blue);
-                Debug.Log(hit.transform.name);
                 if (hit.transform.CompareTag("Player")) // If the raycast hits the player
                 {
                     PlayerLose();

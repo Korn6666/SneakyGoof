@@ -1,6 +1,8 @@
 using Unity.Mathematics;
+using UnityEditor.ShaderKeywordFilter;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.ProBuilder.Shapes;
 using UnityEngine.UIElements;
 
 [RequireComponent(typeof(NoiseEmitter))]
@@ -23,14 +25,19 @@ public class MovementController : MonoBehaviour
     [SerializeField] private float minStepSpeed = 0.1f;
     private float stepSpeed = 1;
     [SerializeField] private float rotationSpeed = 180f; // deg/s, configuré dans l'inspector
+    private float distDiffFromOldOriginePos = 0;
     private RaycastHit hit;
 
     private PlayerInputActions input;
     [SerializeField] private float YBodyMoveFactor = 1;
     [SerializeField] private float bodyLerpBtwLegs = 0.3f;
     private float initialYBodyPos;
-    public Vector3 obstacleContactPoint = Vector3.zero;
-    private bool originalPosAlreadyRedefined = false;
+    public Vector3 obstacleOnLeftLegContactPoint = Vector3.zero;
+    public Vector3 obstacleOnRightLegContactPoint = Vector3.zero;
+    [SerializeField] private LayerMask obstacleMask;
+    [SerializeField] private LayerMask groundMask;
+    
+    public enum Foot { Left, Right }
 
     // Pied Gauche
     private bool leftPressed;
@@ -43,10 +50,14 @@ public class MovementController : MonoBehaviour
     private float currentLeftStepLength;
     private float currentMaxLeftStepLength;
     private float currentLeftStepHeight = 0;
-    public bool leftFootOnObstacle;
-    public bool aroundLeftFootOnObstacle;
+    private bool leftLegOnObstacle;
+    public int leftLegObstacleCounter = 0;
+    private Vector3 leftDesiredWorldPos;
+    private float signedObsLeftForwardDirFromTranform;
+    private float signedObsLeftForwardDirFromTarget;
+    private float signedObsLeftRightDir;
 
-    // Pied Droite
+    // Pied Droit
     private bool rightPressed;
     private bool nextRightPressed;
     private bool rightJustPressed;
@@ -57,8 +68,12 @@ public class MovementController : MonoBehaviour
     private float currentRightStepLength;
     private float currentMaxRightStepLength;
     private float currentRightStepHeight = 0;
-    public bool rightFootOnObstacle;
-    public bool aroundRightFootOnObstacle;
+    private bool rightLegOnObstacle;
+    public int rightLegObstacleCounter = 0;
+    private Vector3 rightDesiredWorldPos;
+    private float signedObsRightForwardDirFromTranform;
+    private float signedObsRightForwardDirFromTarget;
+    private float signedObsRightRightDir;
 
     // Rotation
     private bool rightRotationInput = false;
@@ -72,8 +87,6 @@ public class MovementController : MonoBehaviour
     private Vector3 lastPosForMeasurement;
     private float accumulatedDistanceForMeasurement = 0f;
     private float measurementStartTime = 0f;
-    private Vector3 leftDesiredWorldPos;
-    private Vector3 rightDesiredWorldPos;
 
     void Awake()
     {
@@ -85,10 +98,10 @@ public class MovementController : MonoBehaviour
         currentMaxRightStepLength = maxStepLength;
         input = new PlayerInputActions();
         if (Physics.Raycast(LeftLegIKTarget.transform.position, Vector3.down, out hit))
-            {
-                LeftLegIKTarget.transform.position = hit.point + Vector3.up * 0.1f;
-                LeftLegIKTargetOriginePos = LeftLegIKTarget.transform.position;
-            }
+        {
+            LeftLegIKTarget.transform.position = hit.point + Vector3.up * 0.1f;
+            LeftLegIKTargetOriginePos = LeftLegIKTarget.transform.position;
+        }
         if (Physics.Raycast(RightLegIKTarget.transform.position, Vector3.down, out hit))
         {
             RightLegIKTarget.transform.position = hit.point + Vector3.up * 0.1f;
@@ -156,131 +169,21 @@ public class MovementController : MonoBehaviour
 
     void Update()
     {
+        ObstacleDataUpdate();
+
         Rotation();
 
         FootMovingToOriginalPos();
 
-        //Left foot
-        if (leftJustPressed)
-        {
-            float distR = Vector3.Distance(RightLegIKTarget.position, RightLegIKTargetOriginePos);
-            if (rightON || !leftOnGround || distR > toleranceDistanceForStep)
-            {
-                leftJustPressed = false;
-                leftPressed = false;
-            }
-            else
-            {
-                float signedForward = Vector3.Dot(RightLegIKTarget.position - LeftLegIKTarget.position, transform.forward);
-                currentMaxLeftStepLength = maxStepLength + signedForward;                
-                LeftLegIKTargetOriginePos = LeftLegIKTarget.position;
-                if (currentMaxLeftStepLength < 0.1f)
-                {
-                    leftPressed = false;
-                }
-            }
-        }
-        else if (leftPressed)
-        {
-            stepSpeed = speedStepCurve.Evaluate(currentLeftStepLength) * maxStepSpeed;
-            if (!leftFootOnObstacle)
-            {
-                currentLeftStepLength += Time.deltaTime * stepSpeed  / currentMaxLeftStepLength;
-            }
-            else if (leftFootOnObstacle)
-            {
-                float signedContactDirection = Vector3.Dot(obstacleContactPoint - transform.position, transform.forward);
-                currentLeftStepLength -= Time.deltaTime * signedContactDirection;
-            }
-            currentLeftStepLength = Mathf.Clamp(currentLeftStepLength, -1, 1);
-            currentLeftStepHeight = heightFootCurve.Evaluate(currentLeftStepLength);
+        ProcessFoot(Foot.Left);
+        ProcessFoot(Foot.Right);
 
-            if (rightON || leftLegMovingToOriginalPos || Mathf.Abs(currentLeftStepLength) >= 1)
-            {
-                currentLeftStepLength = 0;
-                leftLegMovingToOriginalPos = true;
-                nextLeftPressed = false;
-            }
-            else
-            {
-                 leftOnGround = false;
-                 bodyYTarget = currentLeftStepHeight * maxStepHeight * YBodyMoveFactor; // Ajuste la hauteur du corps en fonction du pied gauche;
-                 leftDesiredWorldPos = LeftLegIKTargetOriginePos +  currentLeftStepLength * currentMaxLeftStepLength * transform.forward + currentLeftStepHeight * maxStepHeight * transform.up;
-             }
-        }
-        else if (leftJustReleased)
-        {
-            currentLeftStepLength = 0;
-            if (!leftOnGround)
-            {
-                NewOriginalPos(true);
-            }
-        }
-
-        //Right foot
-        if (rightJustPressed)
-        {
-            float distL = Vector3.Distance(LeftLegIKTarget.position, LeftLegIKTargetOriginePos);
-            if (leftON || !rightOnGround || distL > toleranceDistanceForStep)
-            {
-                rightJustPressed = false;
-                rightPressed = false;
-            }
-            else
-            {
-                float signedForward = Vector3.Dot(LeftLegIKTarget.position - RightLegIKTarget.position, transform.forward);
-                currentMaxRightStepLength = maxStepLength + signedForward;
-                RightLegIKTargetOriginePos = RightLegIKTarget.position;
-                if (currentMaxRightStepLength < 0.1f)
-                {
-                    rightPressed = false;
-                }
-            }
-        }
-        else if (rightPressed)
-        {
-            stepSpeed = speedStepCurve.Evaluate(currentRightStepLength) * maxStepSpeed;
-            if (!rightFootOnObstacle)
-            {
-                currentRightStepLength += Time.deltaTime * stepSpeed  / currentMaxRightStepLength;
-            }
-            else if (rightFootOnObstacle)
-            {
-                float signedContactDirection = Vector3.Dot(obstacleContactPoint - transform.position, transform.forward);
-                currentRightStepLength -= Time.deltaTime * signedContactDirection;
-            }
-            currentRightStepLength = Mathf.Clamp(currentRightStepLength, -1, 1);
-            currentRightStepHeight = heightFootCurve.Evaluate(currentRightStepLength);
-
-            if (leftON || rightLegMovingToOriginalPos || Mathf.Abs(currentRightStepLength) >= 1)
-            {
-                currentRightStepLength = 0;
-                rightLegMovingToOriginalPos = true;
-                nextRightPressed = false;
-            }
-            else
-            {
-                rightOnGround = false;
-                bodyYTarget = currentRightStepHeight * maxStepHeight * YBodyMoveFactor; // Ajuste la hauteur du corps en fonction du pied droit;
-                
-                rightDesiredWorldPos = RightLegIKTargetOriginePos + currentMaxRightStepLength * currentRightStepLength * transform.forward + currentRightStepHeight * maxStepHeight * transform.up;
-            }
-        }
-        else if (rightJustReleased)
-        {
-            currentRightStepLength = 0;
-            if (!rightOnGround)
-            {
-                NewOriginalPos(false);
-            }
-        }
-        
         //Main Body
         MainBodyPositionUpdate();
 
         BoolAssignation();
     }
-
+    
     // Appliquer les positions monde calculées aux transforms enfants après que le body ait bougé.
     // LateUpdate écrase l'effet de la parenté chaque frame.
     void LateUpdate()
@@ -297,15 +200,219 @@ public class MovementController : MonoBehaviour
             rightPressed = false;
             nextRightPressed = true;
         }
+        
     }
+
+    void ProcessFoot(Foot foot)
+    {
+        if (rightLegMovingToOriginalPos || leftLegMovingToOriginalPos)
+        {
+            return;
+        }
+
+        // === Sélection des variables selon le pied ===
+
+        bool justPressed = (foot == Foot.Left) ? leftJustPressed : rightJustPressed;
+        bool pressed = (foot == Foot.Left) ? leftPressed : rightPressed;
+        bool justReleased = (foot == Foot.Left) ? leftJustReleased : rightJustReleased;
+        bool onGround = (foot == Foot.Left) ? leftOnGround : rightOnGround;
+        bool otherFootON = (foot == Foot.Left) ? rightON : leftON;
+        bool movingToOrigin = (foot == Foot.Left) ? leftLegMovingToOriginalPos : rightLegMovingToOriginalPos;
+
+        float currentStepLen = (foot == Foot.Left) ? currentLeftStepLength : currentRightStepLength;
+        float currentMaxLen = (foot == Foot.Left) ? currentMaxLeftStepLength : currentMaxRightStepLength;
+
+        Transform IKTarget = (foot == Foot.Left) ? LeftLegIKTarget : RightLegIKTarget;
+        Vector3 IKTargetOrigin = (foot == Foot.Left) ? LeftLegIKTargetOriginePos : RightLegIKTargetOriginePos;
+
+        float currentHeight = (foot == Foot.Left) ? currentLeftStepHeight : currentRightStepHeight;
+        Vector3 desiredPos = (foot == Foot.Left) ? leftDesiredWorldPos : rightDesiredWorldPos;
+
+        bool legOnObstacle = (foot == Foot.Left) ? leftLegOnObstacle : rightLegOnObstacle;
+        float signedObsForwardDirFromTranform = (foot == Foot.Left) ? signedObsLeftForwardDirFromTranform : signedObsRightForwardDirFromTranform;
+        float signedObsForwardDirFromTarget = (foot == Foot.Left) ? signedObsLeftForwardDirFromTarget : signedObsRightForwardDirFromTarget;
+        float signedObsRightDir = (foot == Foot.Left) ? signedObsLeftRightDir : signedObsRightRightDir;
+
+        // === LOGIQUE COMMUNE ===
+
+        if (justPressed)
+        {
+            float otherDist = Vector3.Distance(
+                (foot == Foot.Left ? RightLegIKTarget : LeftLegIKTarget).position,
+                foot == Foot.Left ? RightLegIKTargetOriginePos : LeftLegIKTargetOriginePos
+            );
+
+            if (otherFootON || !onGround || otherDist > toleranceDistanceForStep)
+            {
+                justPressed = false;
+                pressed = false;
+            }
+            else
+            {
+                distDiffFromOldOriginePos = 0;
+                float signedForward = Vector3.Dot(
+                    (foot == Foot.Left ? RightLegIKTarget : LeftLegIKTarget).position - IKTarget.position,
+                    transform.forward
+                );
+
+                currentMaxLen = maxStepLength + signedForward;
+
+                if (currentMaxLen < 0.1f)
+                    pressed = false;
+            }
+        }
+        else if (pressed)
+        {
+            stepSpeed = speedStepCurve.Evaluate(currentStepLen) * maxStepSpeed;
+            // currentStepLen += Time.deltaTime * stepSpeed / currentMaxLen;
+
+            if (legOnObstacle)
+            {
+                if (rightRotationInput)
+                {
+                    //Recule le pied si il est devant et l'avance s'il est derrière
+                    currentStepLen -= Time.deltaTime * Mathf.Sign(signedObsForwardDirFromTranform) * stepSpeed / currentMaxLen;
+                }
+                else if (leftRotationInput)
+                {
+                    //Recule le pied si il est devant et l'avance s'il est derrière
+                    currentStepLen -= Time.deltaTime * Mathf.Sign(signedObsForwardDirFromTranform) * stepSpeed / currentMaxLen;
+                }else if (signedObsForwardDirFromTarget < 0)
+                {
+                    currentStepLen += Time.deltaTime * stepSpeed / currentMaxLen;
+                }
+            }
+            else
+            {
+                currentStepLen += Time.deltaTime * stepSpeed / currentMaxLen;
+            }
+
+            currentStepLen = Mathf.Clamp(currentStepLen, -1, 1);
+            currentHeight = heightFootCurve.Evaluate(currentStepLen);
+
+            if (otherFootON || movingToOrigin || Mathf.Abs(currentStepLen) >= 1)
+            {
+                currentStepLen = 0;
+                movingToOrigin = true;
+
+                if (foot == Foot.Left) nextLeftPressed = false;
+                else nextRightPressed = false;
+            }
+            else
+            {
+                onGround = false;
+
+                bodyYTarget = currentHeight * maxStepHeight * YBodyMoveFactor;
+
+                desiredPos =
+                    IKTargetOrigin
+                    - distDiffFromOldOriginePos * transform.forward // Compensation du changement de IKTargetOrigin dans Rotation()
+                    + currentStepLen * currentMaxLen * transform.forward
+                    + currentHeight * maxStepHeight * transform.up;
+            }
+        }
+        else if (justReleased)
+        {
+            currentStepLen = 0;
+            if (!onGround)
+            {
+                NewOriginalPos(foot);
+                movingToOrigin = true;
+            }
+        }
+
+        // === RÉÉCRITURE DANS LES VARIABLES GLOBALES ===
+
+        if (foot == Foot.Left)
+        {
+            leftJustPressed = justPressed;
+            leftPressed = pressed;
+            leftJustReleased = justReleased;
+            leftOnGround = onGround;
+            leftLegMovingToOriginalPos = movingToOrigin;
+
+            currentLeftStepLength = currentStepLen;
+            currentMaxLeftStepLength = currentMaxLen;
+            currentLeftStepHeight = currentHeight;
+            leftDesiredWorldPos = desiredPos;
+        }
+        else
+        {
+            rightJustPressed = justPressed;
+            rightPressed = pressed;
+            rightJustReleased = justReleased;
+            rightOnGround = onGround;
+            rightLegMovingToOriginalPos = movingToOrigin;
+
+            currentRightStepLength = currentStepLen;
+            currentMaxRightStepLength = currentMaxLen;
+            currentRightStepHeight = currentHeight;
+            rightDesiredWorldPos = desiredPos;
+        }
+    }
+    
+    private void ObstacleDataUpdate()
+    {
+        if (leftLegObstacleCounter > 0)
+        {
+            leftLegOnObstacle = true;
+        }
+        else
+        {
+            leftLegOnObstacle = false;
+            leftLegObstacleCounter = 0;
+        }
+        if (rightLegObstacleCounter > 0)
+        {
+            rightLegOnObstacle = true;
+        }
+        else
+        {
+            rightLegOnObstacle = false;
+            rightLegObstacleCounter = 0;
+        }
+
+        if (leftLegOnObstacle)
+        {
+            signedObsLeftForwardDirFromTranform = Vector3.Dot(obstacleOnLeftLegContactPoint - transform.position, transform.forward);
+            signedObsLeftForwardDirFromTarget = Vector3.Dot(obstacleOnLeftLegContactPoint - LeftLegIKTarget.position, transform.forward);
+            // if (signedObsLeftForwardDirFromTarget < 0) Debug.Log("c negatif à gaiche");
+            signedObsLeftRightDir = Vector3.Dot(obstacleOnLeftLegContactPoint - LeftLegIKTarget.position, transform.right);
+        }else
+        {
+            signedObsLeftForwardDirFromTranform = 0;
+            signedObsLeftForwardDirFromTarget = 0;
+            signedObsLeftRightDir = 0;
+        }
+        
+        if (rightLegOnObstacle)
+        {
+            signedObsRightForwardDirFromTranform = Vector3.Dot(obstacleOnRightLegContactPoint - transform.position, transform.forward);
+            signedObsRightForwardDirFromTarget = Vector3.Dot(obstacleOnRightLegContactPoint - RightLegIKTarget.position, transform.forward);
+            signedObsRightRightDir = Vector3.Dot(obstacleOnRightLegContactPoint - RightLegIKTarget.position, transform.right);
+            // Debug.Log(signedObsRightRightDir);
+        }
+        else
+        {   
+            signedObsRightForwardDirFromTranform = 0;
+            signedObsRightForwardDirFromTarget = 0;
+            signedObsRightRightDir = 0;
+        }
+    }
+
+
 
     private void Rotation()
     {
         if (rightRotationInput || leftRotationInput)
         {
+
             float turnInput = 0;
-            if (rightRotationInput) turnInput += 1;
-            if (leftRotationInput) turnInput -= 1;
+            bool obstacleOnLeft = signedObsLeftRightDir < 0 || signedObsRightRightDir < 0;
+            bool obsacleOnRight = signedObsLeftRightDir > 0 || signedObsRightRightDir > 0;
+
+            if (rightRotationInput && !obsacleOnRight) turnInput += 1;
+            if (leftRotationInput && !obstacleOnLeft) turnInput -= 1;
 
             // only rotate if one foot is on ground
             if (leftOnGround != rightOnGround)
@@ -320,72 +427,89 @@ public class MovementController : MonoBehaviour
                 transform.RotateAround(pivot, Vector3.up, angle);
 
                 // also rotate the stored origin positions so the baseline (origins) follows the rotation
-                LeftLegIKTargetOriginePos = Quaternion.AngleAxis(angle, Vector3.up) * (LeftLegIKTargetOriginePos - pivot) + pivot;
-                RightLegIKTargetOriginePos = Quaternion.AngleAxis(angle, Vector3.up) * (RightLegIKTargetOriginePos - pivot) + pivot;
+                Vector3 leftNewPos = Quaternion.AngleAxis(angle, Vector3.up) * (LeftLegIKTargetOriginePos - pivot) + pivot;
+                LeftLegIKTargetOriginePos = IKTargetPositionFinder(leftNewPos, Foot.Left);
+                Vector3 rightNewPos = Quaternion.AngleAxis(angle, Vector3.up) * (RightLegIKTargetOriginePos - pivot) + pivot;
+                RightLegIKTargetOriginePos = IKTargetPositionFinder(rightNewPos, Foot.Right);
             }
+        }
+    }
+
+    private Vector3 IKTargetPositionFinder(Vector3 oldPos, Foot foot)
+    {
+        if (Physics.OverlapSphere(oldPos, 0.1f, obstacleMask).Length == 0)
+        {
+            return oldPos;
+        }
+        // Find pos on ground under the foot
+        RaycastHit raycastHit;
+        if (foot == Foot.Left)
+        {
+            Physics.Raycast(LeftLegIKTarget.transform.position, Vector3.down, out raycastHit, 10f, groundMask);
+        }
+        else
+        {
+            Physics.Raycast(RightLegIKTarget.transform.position, Vector3.down, out raycastHit, 10f, groundMask);
+        }
+
+        Vector3 groundPointUnderFoot = raycastHit.point;
+        Vector3 rayDir = oldPos - groundPointUnderFoot;
+
+        if (Physics.Raycast(groundPointUnderFoot, rayDir.normalized, out raycastHit, rayDir.magnitude, obstacleMask))
+        {
+            distDiffFromOldOriginePos += Vector3.Distance(oldPos, raycastHit.point  - rayDir * 0.1f);
+            return raycastHit.point  - rayDir * 0.1f;
+        }
+        else
+        {
+            return oldPos;
         }
     }
 
     private void FootMovingToOriginalPos()
     {
-        if (leftLegMovingToOriginalPos || rightLegMovingToOriginalPos)
+        if (leftLegMovingToOriginalPos)
         {
-            if (leftLegMovingToOriginalPos)
+            float distL = Vector3.Distance(LeftLegIKTarget.position, LeftLegIKTargetOriginePos);
+            if (distL <= 0.05f)
             {
-                float distL = Vector3.Distance(LeftLegIKTarget.position, LeftLegIKTargetOriginePos);
-                if (distL <= 0.05f)
-                {
-                    // set desired world pos; actual transform will be applied in LateUpdate
-                    leftDesiredWorldPos = LeftLegIKTargetOriginePos;
-                    leftLegMovingToOriginalPos = false;
-                    leftOnGround = true;
-                    noiseEmitter.MakeNoise(1);
-                    // Debug.Log("Left foot back to original pos");
-                    originalPosAlreadyRedefined = false;
-                }else if (!originalPosAlreadyRedefined && aroundLeftFootOnObstacle)
-                {
-                    originalPosAlreadyRedefined = true;
-                    NewOriginalPos(true);
-                }
-                else
-                {
-                    leftDesiredWorldPos = Vector3.Lerp(LeftLegIKTarget.position, LeftLegIKTargetOriginePos, Time.deltaTime * speedFootToGround);
-                }
+                // set desired world pos; actual transform will be applied in LateUpdate
+                leftDesiredWorldPos = LeftLegIKTargetOriginePos;
+                leftLegMovingToOriginalPos = false;
+                leftOnGround = true;
+                noiseEmitter.MakeNoise(1);
             }
-            if (rightLegMovingToOriginalPos)
+            else
             {
-                float distR = Vector3.Distance(RightLegIKTarget.position, RightLegIKTargetOriginePos);
-                if (distR <= 0.05f)
-                {
-                    rightDesiredWorldPos = RightLegIKTargetOriginePos;
-                    rightLegMovingToOriginalPos = false;
-                    rightOnGround = true;
-                    noiseEmitter.MakeNoise(1);
-                    // Debug.Log("Right foot back to original pos");
-                    originalPosAlreadyRedefined = false;
-                }else if (!originalPosAlreadyRedefined && aroundRightFootOnObstacle)
-                {
-                    originalPosAlreadyRedefined = true;
-                    NewOriginalPos(false);
-                }
-                else
-                {
-                    rightDesiredWorldPos = Vector3.Lerp(RightLegIKTarget.position, RightLegIKTargetOriginePos, Time.deltaTime * speedFootToGround);
-                }
+                leftDesiredWorldPos = Vector3.Lerp(LeftLegIKTarget.position, LeftLegIKTargetOriginePos, Time.deltaTime * speedFootToGround);
             }
-            MainBodyPositionUpdate();
-            return;
         }
+        if (rightLegMovingToOriginalPos)
+        {
+            float distR = Vector3.Distance(RightLegIKTarget.position, RightLegIKTargetOriginePos);
+            if (distR <= 0.05f)
+            {
+                rightDesiredWorldPos = RightLegIKTargetOriginePos;
+                rightLegMovingToOriginalPos = false;
+                rightOnGround = true;
+                noiseEmitter.MakeNoise(1);
+            }
+            else
+            {
+                rightDesiredWorldPos = Vector3.Lerp(RightLegIKTarget.position, RightLegIKTargetOriginePos, Time.deltaTime * speedFootToGround);
+            }
+        }
+    
     }
     
-    private void NewOriginalPos(bool leftFoot)
+    private void NewOriginalPos(Foot foot)
     {
-        if (leftFoot)
+        if (foot == Foot.Left)
         {
             leftLegMovingToOriginalPos = true;
             if (Physics.Raycast(LeftLegIKTarget.transform.position, Vector3.down, out hit, 10f))
             {
-                LeftLegIKTargetOriginePos = hit.point + Vector3.up * 0.1f;
+                 LeftLegIKTargetOriginePos = hit.point + Vector3.up * 0.1f;
             }
         }
         else
@@ -393,7 +517,7 @@ public class MovementController : MonoBehaviour
             rightLegMovingToOriginalPos = true;
             if (Physics.Raycast(RightLegIKTarget.transform.position, Vector3.down, out hit, 10f))
             {
-                RightLegIKTargetOriginePos = hit.point + Vector3.up * 0.1f;
+                 RightLegIKTargetOriginePos = hit.point + Vector3.up * 0.1f;
             }
         }
     }

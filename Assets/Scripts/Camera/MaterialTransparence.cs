@@ -157,4 +157,3 @@ public class MaterialTransparence : MonoBehaviour
         obstacles.Clear();
     }
 }
-// ...existing code...
