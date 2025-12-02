@@ -1,4 +1,7 @@
+using System;
+using System.Data.SqlTypes;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CameraMovement : MonoBehaviour
 {
@@ -7,19 +10,26 @@ public class CameraMovement : MonoBehaviour
     private Vector3 offset;
     private Vector3 targetPosition;
     private Quaternion targetRotation;
-    private Quaternion targetRotationY;
     private float distanceBehindPlayer;
     [SerializeField] private float speedLerp = 5f;
     [SerializeField] private float limitDist = 3;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // Section Camera moves by player
+    private PlayerInputActions input;
+    private Vector2 inputVector;
+    private Vector3 inputDir;
+    private float deadzone = 0.1f;
+    private bool eyeCameraDir = true;
+
     void Start()
     {
+        input = player.GetComponent<MovementController>().input;
+        input.Player.CameraMove.performed += ctx => inputVector = ctx.ReadValue<Vector2>();
+        input.Player.CameraMove.canceled += ctx => inputVector = Vector2.zero;
+        input.Player.CameraMode.performed += ctx => eyeCameraDir = !eyeCameraDir;
         offset = transform.position - player.position;
         distanceBehindPlayer = offset.magnitude;
     }
-
-    // Update is called once per frame
     void Update()
     {
         float distance = Vector3.Distance(eye.position, player.position);
@@ -27,19 +37,46 @@ public class CameraMovement : MonoBehaviour
         {
             return;
         }
-        // Direction de l’œil vers le joueur
-        Vector3 direction = (eye.position - player.position).normalized;
 
-        // Position cible : derrière le joueur, dans la direction opposée à l’œil
+        Vector3 direction;
+        if (eyeCameraDir)
+        {
+            direction = (eye.position - player.position).normalized;
+        }
+        else
+        {
+            direction = player.forward;
+        }
+
+        if (inputVector.sqrMagnitude > deadzone * deadzone)
+        {
+            inputDir = new Vector3(inputVector.x, 0, inputVector.y);
+        }
+        else
+        {
+            inputDir = Vector3.zero;
+        }
+        
+        float angleY = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg;
+
+        Quaternion horizontalRot = Quaternion.Euler(0f, angleY, 0f);
+        direction = horizontalRot * direction;
+
         Vector3 targetPosition = player.position - direction * distanceBehindPlayer;
 
-        // On peut ajouter un petit offset vertical
-        targetPosition += new Vector3(0, offset.y, 0);
+        targetPosition.y = transform.position.y;
+        
+        if (inputVector.sqrMagnitude > deadzone * deadzone)
+        {
+            Vector3 lookDirection = player.position - targetPosition;
+            lookDirection.y = direction.y;
+            targetRotation = Quaternion.LookRotation(lookDirection);
+        }
+        else
+        {
+            targetRotation = Quaternion.LookRotation(direction);
+        }
 
-        // La caméra regarde l’œil
-        Quaternion targetRotation = Quaternion.LookRotation(eye.position - targetPosition);
-
-        // Mouvement fluide
         transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * speedLerp);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * speedLerp);
     }

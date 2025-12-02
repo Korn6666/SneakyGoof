@@ -8,6 +8,7 @@ using UnityEngine.UIElements;
 [RequireComponent(typeof(NoiseEmitter))]
 public class MovementController : MonoBehaviour
 {
+    public PlayerInputActions input;
     [SerializeField] private Transform LeftLegIKTarget;
     private Vector3 LeftLegIKTargetOriginePos;
     [SerializeField] private Transform RightLegIKTarget;
@@ -27,8 +28,6 @@ public class MovementController : MonoBehaviour
     [SerializeField] private float rotationSpeed = 180f; // deg/s, configuré dans l'inspector
     private float distDiffFromOldOriginePos = 0;
     private RaycastHit hit;
-
-    private PlayerInputActions input;
     [SerializeField] private float YBodyMoveFactor = 1;
     [SerializeField] private float bodyLerpBtwLegs = 0.3f;
     private float initialYBodyPos;
@@ -264,8 +263,7 @@ public class MovementController : MonoBehaviour
         else if (pressed)
         {
             stepSpeed = speedStepCurve.Evaluate(currentStepLen) * maxStepSpeed;
-            // currentStepLen += Time.deltaTime * stepSpeed / currentMaxLen;
-
+        
             if (legOnObstacle)
             {
                 if (rightRotationInput)
@@ -406,13 +404,17 @@ public class MovementController : MonoBehaviour
     {
         if (rightRotationInput || leftRotationInput)
         {
-
             float turnInput = 0;
-            bool obstacleOnLeft = signedObsLeftRightDir < 0 || signedObsRightRightDir < 0;
-            bool obsacleOnRight = signedObsLeftRightDir > 0 || signedObsRightRightDir > 0;
+            //Foot Placement 
+            float footToTransformOnZ = rightOnGround ? Mathf.Sign(Vector3.Dot(LeftLegIKTarget.position - transform.position, transform.forward)) 
+                                                     : Mathf.Sign(Vector3.Dot(RightLegIKTarget.position - transform.position, transform.forward));
+            
+            // Obstacle check from the foot not on ground
+            bool obstacleOnLeft = rightOnGround ? signedObsLeftRightDir < 0 : signedObsRightRightDir < 0; 
+            bool obsacleOnRight = rightOnGround ? signedObsLeftRightDir > 0 : signedObsRightRightDir > 0;
 
-            if (rightRotationInput && !obsacleOnRight) turnInput += 1;
-            if (leftRotationInput && !obstacleOnLeft) turnInput -= 1;
+            if (rightRotationInput && !obsacleOnRight && footToTransformOnZ > 0) turnInput += 1;
+            if (leftRotationInput && !obstacleOnLeft && footToTransformOnZ > 0) turnInput -= 1;
 
             // only rotate if one foot is on ground
             if (leftOnGround != rightOnGround)
