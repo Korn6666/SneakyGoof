@@ -52,8 +52,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.1948484, y: 5.111501, z: 2.7796974}
-  m_Center: {x: 0.17964128, y: -1.8049617, z: 0.09179051}
+  m_Size: {x: 1.1948484, y: 5.4369726, z: 1.872822}
+  m_Center: {x: 0.17964129, y: -1.6422257, z: 0.04819501}
 --- !u!114 &7297382910452845723
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -120,8 +120,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.0622717, y: 5.053746, z: 2.8596363}
-  m_Center: {x: -0.15756465, y: 1.7848357, z: -0.09427291}
+  m_Size: {x: 1.0622717, y: 5.345373, z: 1.9928312}
+  m_Center: {x: -0.15756464, y: 1.6390227, z: -0.052700132}
 --- !u!114 &5483143452689622993
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -862,7 +862,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   toleranceDistanceForStep: 0.1
   speedFootToGround: 20
-  maxStepLength: 1.5
+  maxStepLength: 1.3
   maxStepHeight: 0.4
   maxStepSpeed: 5
   minStepSpeed: 0.3

@@ -37,9 +37,27 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""LeftStepBackward"",
+                    ""type"": ""Button"",
+                    ""id"": ""769885bf-0ee7-45a2-aa8c-19f5fc772185"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""RightStep"",
                     ""type"": ""Button"",
                     ""id"": ""1db98674-35a8-4e50-8be8-f22edd8d858e"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""RightStepBackward"",
+                    ""type"": ""Button"",
+                    ""id"": ""9ea40bdb-2b3f-4044-bd04-c1cb084c27e3"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -98,6 +116,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""KeyboardModifier"",
+                    ""type"": ""Button"",
+                    ""id"": ""626d18e6-0090-4149-b36d-1045431cfb06"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -136,6 +163,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""e7ea9904-0714-4578-947d-2239fd94846f"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""LeftStepBackward"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""62a504ff-4ce9-4630-938b-b494b64f8bb1"",
                     ""path"": ""<Keyboard>/rightArrow"",
                     ""interactions"": """",
@@ -164,6 +202,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""RightStep"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""32700768-b124-44a8-aa7f-319057b0e042"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""RightStepBackward"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -274,6 +323,28 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""CameraMode"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f917ea81-a268-4b13-8274-e3d81754792e"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraMode"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""dbb31dfb-0cdf-4d6a-b28e-add5e6a1399f"",
+                    ""path"": ""<Keyboard>/ctrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""KeyboardModifier"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -862,13 +933,16 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_LeftStep = m_Player.FindAction("LeftStep", throwIfNotFound: true);
+        m_Player_LeftStepBackward = m_Player.FindAction("LeftStepBackward", throwIfNotFound: true);
         m_Player_RightStep = m_Player.FindAction("RightStep", throwIfNotFound: true);
+        m_Player_RightStepBackward = m_Player.FindAction("RightStepBackward", throwIfNotFound: true);
         m_Player_Up = m_Player.FindAction("Up", throwIfNotFound: true);
         m_Player_Down = m_Player.FindAction("Down", throwIfNotFound: true);
         m_Player_Left = m_Player.FindAction("Left", throwIfNotFound: true);
         m_Player_Right = m_Player.FindAction("Right", throwIfNotFound: true);
         m_Player_CameraMove = m_Player.FindAction("CameraMove", throwIfNotFound: true);
         m_Player_CameraMode = m_Player.FindAction("CameraMode", throwIfNotFound: true);
+        m_Player_KeyboardModifier = m_Player.FindAction("KeyboardModifier", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -949,25 +1023,31 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Player;
     private List<IPlayerActions> m_PlayerActionsCallbackInterfaces = new List<IPlayerActions>();
     private readonly InputAction m_Player_LeftStep;
+    private readonly InputAction m_Player_LeftStepBackward;
     private readonly InputAction m_Player_RightStep;
+    private readonly InputAction m_Player_RightStepBackward;
     private readonly InputAction m_Player_Up;
     private readonly InputAction m_Player_Down;
     private readonly InputAction m_Player_Left;
     private readonly InputAction m_Player_Right;
     private readonly InputAction m_Player_CameraMove;
     private readonly InputAction m_Player_CameraMode;
+    private readonly InputAction m_Player_KeyboardModifier;
     public struct PlayerActions
     {
         private @PlayerInputActions m_Wrapper;
         public PlayerActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
         public InputAction @LeftStep => m_Wrapper.m_Player_LeftStep;
+        public InputAction @LeftStepBackward => m_Wrapper.m_Player_LeftStepBackward;
         public InputAction @RightStep => m_Wrapper.m_Player_RightStep;
+        public InputAction @RightStepBackward => m_Wrapper.m_Player_RightStepBackward;
         public InputAction @Up => m_Wrapper.m_Player_Up;
         public InputAction @Down => m_Wrapper.m_Player_Down;
         public InputAction @Left => m_Wrapper.m_Player_Left;
         public InputAction @Right => m_Wrapper.m_Player_Right;
         public InputAction @CameraMove => m_Wrapper.m_Player_CameraMove;
         public InputAction @CameraMode => m_Wrapper.m_Player_CameraMode;
+        public InputAction @KeyboardModifier => m_Wrapper.m_Player_KeyboardModifier;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -980,9 +1060,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @LeftStep.started += instance.OnLeftStep;
             @LeftStep.performed += instance.OnLeftStep;
             @LeftStep.canceled += instance.OnLeftStep;
+            @LeftStepBackward.started += instance.OnLeftStepBackward;
+            @LeftStepBackward.performed += instance.OnLeftStepBackward;
+            @LeftStepBackward.canceled += instance.OnLeftStepBackward;
             @RightStep.started += instance.OnRightStep;
             @RightStep.performed += instance.OnRightStep;
             @RightStep.canceled += instance.OnRightStep;
+            @RightStepBackward.started += instance.OnRightStepBackward;
+            @RightStepBackward.performed += instance.OnRightStepBackward;
+            @RightStepBackward.canceled += instance.OnRightStepBackward;
             @Up.started += instance.OnUp;
             @Up.performed += instance.OnUp;
             @Up.canceled += instance.OnUp;
@@ -1001,6 +1087,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @CameraMode.started += instance.OnCameraMode;
             @CameraMode.performed += instance.OnCameraMode;
             @CameraMode.canceled += instance.OnCameraMode;
+            @KeyboardModifier.started += instance.OnKeyboardModifier;
+            @KeyboardModifier.performed += instance.OnKeyboardModifier;
+            @KeyboardModifier.canceled += instance.OnKeyboardModifier;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -1008,9 +1097,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @LeftStep.started -= instance.OnLeftStep;
             @LeftStep.performed -= instance.OnLeftStep;
             @LeftStep.canceled -= instance.OnLeftStep;
+            @LeftStepBackward.started -= instance.OnLeftStepBackward;
+            @LeftStepBackward.performed -= instance.OnLeftStepBackward;
+            @LeftStepBackward.canceled -= instance.OnLeftStepBackward;
             @RightStep.started -= instance.OnRightStep;
             @RightStep.performed -= instance.OnRightStep;
             @RightStep.canceled -= instance.OnRightStep;
+            @RightStepBackward.started -= instance.OnRightStepBackward;
+            @RightStepBackward.performed -= instance.OnRightStepBackward;
+            @RightStepBackward.canceled -= instance.OnRightStepBackward;
             @Up.started -= instance.OnUp;
             @Up.performed -= instance.OnUp;
             @Up.canceled -= instance.OnUp;
@@ -1029,6 +1124,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @CameraMode.started -= instance.OnCameraMode;
             @CameraMode.performed -= instance.OnCameraMode;
             @CameraMode.canceled -= instance.OnCameraMode;
+            @KeyboardModifier.started -= instance.OnKeyboardModifier;
+            @KeyboardModifier.performed -= instance.OnKeyboardModifier;
+            @KeyboardModifier.canceled -= instance.OnKeyboardModifier;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1212,13 +1310,16 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     public interface IPlayerActions
     {
         void OnLeftStep(InputAction.CallbackContext context);
+        void OnLeftStepBackward(InputAction.CallbackContext context);
         void OnRightStep(InputAction.CallbackContext context);
+        void OnRightStepBackward(InputAction.CallbackContext context);
         void OnUp(InputAction.CallbackContext context);
         void OnDown(InputAction.CallbackContext context);
         void OnLeft(InputAction.CallbackContext context);
         void OnRight(InputAction.CallbackContext context);
         void OnCameraMove(InputAction.CallbackContext context);
         void OnCameraMode(InputAction.CallbackContext context);
+        void OnKeyboardModifier(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

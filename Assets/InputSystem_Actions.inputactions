@@ -15,9 +15,27 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "LeftStepBackward",
+                    "type": "Button",
+                    "id": "769885bf-0ee7-45a2-aa8c-19f5fc772185",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "RightStep",
                     "type": "Button",
                     "id": "1db98674-35a8-4e50-8be8-f22edd8d858e",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "RightStepBackward",
+                    "type": "Button",
+                    "id": "9ea40bdb-2b3f-4044-bd04-c1cb084c27e3",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -76,6 +94,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "KeyboardModifier",
+                    "type": "Button",
+                    "id": "626d18e6-0090-4149-b36d-1045431cfb06",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -114,6 +141,17 @@
                 },
                 {
                     "name": "",
+                    "id": "e7ea9904-0714-4578-947d-2239fd94846f",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "LeftStepBackward",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "62a504ff-4ce9-4630-938b-b494b64f8bb1",
                     "path": "<Keyboard>/rightArrow",
                     "interactions": "",
@@ -142,6 +180,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "RightStep",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "32700768-b124-44a8-aa7f-319057b0e042",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "RightStepBackward",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -252,6 +301,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "CameraMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f917ea81-a268-4b13-8274-e3d81754792e",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "dbb31dfb-0cdf-4d6a-b28e-add5e6a1399f",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "KeyboardModifier",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
