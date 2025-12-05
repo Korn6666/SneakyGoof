@@ -27,8 +27,8 @@ public class Eye_Behaviour : MonoBehaviour
     //Noise Behaviour
     [Header("Noise Behaviour")]
     [SerializeField] private float maxNoiseOnBar;
-    [SerializeField] float noiseFirstThereshold;
-    [SerializeField] float noiseSecondThereshold;
+    [SerializeField] float noiseFirstThreshold;
+    [SerializeField] float noiseSecondThreshold;
     [SerializeField] float noiseSpeedDecrease;
     private float currentNoiseSpeedDecrease;
     [SerializeField] float noiseSpeedDecreaseAcceleration = 0.1f; 
@@ -50,10 +50,13 @@ public class Eye_Behaviour : MonoBehaviour
     {
         currentNoiseSpeedDecrease = noiseSpeedDecrease;
         current_noiseLevel += intensity;
-        if (current_noiseLevel < noiseFirstThereshold)
+        
+        if (current_noiseLevel < noiseFirstThreshold)
         {
-        }
-        else if (current_noiseLevel < noiseSecondThereshold)
+            firstStage = true;
+            secondStage = false;
+        } 
+        else if (current_noiseLevel < noiseSecondThreshold)
         {
             firstStage = false;
             secondStage = true;
@@ -61,13 +64,13 @@ public class Eye_Behaviour : MonoBehaviour
             lastKnownPlayerPosition = sourcePosition;
             timerEyePosition = -1; // Interrupt wait time to react immediately
         }
-        else if (secondStage) // Frame when crossing the second threshold
+        else if (secondStage && current_noiseLevel >= noiseSecondThreshold) // Frame when crossing the second threshold and going to third stage
         {
             secondStage = false;
             thirdStage = true;
             EyeOnPlayer();
         }
-        else // Above second threshold
+        else if (thirdStage) // Frame when the player makes noise being on third stage
         {
             PlayerLose();
         }
@@ -207,14 +210,14 @@ public class Eye_Behaviour : MonoBehaviour
     
         private void NoiseColorBarUpdate()
     {
-        if (current_noiseLevel < noiseFirstThereshold)
+        if (current_noiseLevel < noiseFirstThreshold)
         {
             firstStage = true;
             secondStage = false;
             thirdStage = false;
             FillArea.color = firstStageColor;
         }
-        else if (current_noiseLevel < noiseSecondThereshold)
+        else if (current_noiseLevel < noiseSecondThreshold)
         {
             firstStage = false;
             secondStage = true;
