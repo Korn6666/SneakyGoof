@@ -32,12 +32,6 @@ public class CameraMovement : MonoBehaviour
     }
     void Update()
     {
-        float distance = Vector3.Distance(eye.position, player.position);
-        if (distance < limitDist)
-        {
-            return;
-        }
-
         Vector3 direction;
         if (eyeCameraDir)
         {
@@ -76,8 +70,40 @@ public class CameraMovement : MonoBehaviour
         {
             targetRotation = Quaternion.LookRotation(direction);
         }
+        
+        MoveAroundPlayer(targetPosition);
+    }
 
-        transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * speedLerp);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * speedLerp);
+
+    private void MoveAroundPlayer(Vector3 _targetPosition)
+    {
+        float orbitSpeed = speedLerp * 50;
+
+        // Directions autour du joueur
+        Vector3 currentDir = transform.position - player.position;
+        Vector3 targetDir = _targetPosition - player.position;
+        Vector3 currentDirFlat = new Vector3(currentDir.x, 0, currentDir.z);
+        Vector3 targetDirFlat = new Vector3(targetDir.x, 0, targetDir.z);
+        float angle = Vector3.SignedAngle(currentDirFlat, targetDirFlat, Vector3.up);
+      
+        if (Mathf.Abs(angle) > 0.5f && inputVector.sqrMagnitude > deadzone * deadzone)
+        {
+            float deltaAngle = Mathf.Clamp(angle, -orbitSpeed * Time.deltaTime, orbitSpeed * Time.deltaTime);
+
+            transform.RotateAround(
+                player.position,
+                Vector3.up,
+                deltaAngle
+            );
+            if (Mathf.Abs(currentDir.magnitude - distanceBehindPlayer) > 0.1f)
+            {
+                transform.position = Vector3.Lerp(transform.position, player.position + currentDir, Time.deltaTime * speedLerp);
+            }
+        }
+        else
+        {
+            transform.position = Vector3.Lerp(transform.position, _targetPosition, Time.deltaTime * speedLerp);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * speedLerp);
+        }
     }
 }
